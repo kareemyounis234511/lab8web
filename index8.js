@@ -1,7 +1,3 @@
-// ================================
-//  FULL REST API (WORKING VERSION)
-// ================================
-
 const express = require("express");
 const app = express();
 app.use(express.json());
@@ -9,113 +5,72 @@ app.use(express.json());
 // -----------------------------
 // In-Memory Storage
 // -----------------------------
-let users = [];
-let reservations = [];
+let posts = [];
+let comments = [];
 
 // -----------------------------
-// USERS ENDPOINTS
+// POSTS ENDPOINTS
 // -----------------------------
 
-// GET all users
-app.get("/users", (req, res) => {
-  res.json(users);
-});
-
-// GET user by ID
-app.get("/users/:id", (req, res) => {
-  const user = users.find(u => u.id == req.params.id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.json(user);
-});
-
-// POST create user
-app.post("/users", (req, res) => {
-  if (!req.body.name || !req.body.email) {
-    return res.status(400).json({ message: "name and email are required" });
+// POST create a post
+app.post("/posts", (req, res) => {
+  if (!req.body.title || !req.body.body) {
+    return res.status(400).json({ message: "title and body are required" });
   }
 
-  const newUser = {
-    id: users.length + 1,
-    name: req.body.name,
-    email: req.body.email
+  const newPost = {
+    id: posts.length + 1,
+    title: req.body.title,
+    body: req.body.body
   };
 
-  users.push(newUser);
-  res.status(201).json(newUser);
+  posts.push(newPost);
+  res.status(201).json(newPost);
 });
 
-// PUT update user
-app.put("/users/:id", (req, res) => {
-  const user = users.find(u => u.id == req.params.id);
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  user.name = req.body.name ?? user.name;
-  user.email = req.body.email ?? user.email;
-
-  res.json(user);
+// GET all posts
+app.get("/posts", (req, res) => {
+  res.json(posts);
 });
 
-// DELETE user
-app.delete("/users/:id", (req, res) => {
-  const exists = users.some(u => u.id == req.params.id);
-  if (!exists) return res.status(404).json({ message: "User not found" });
+// GET one post by ID
+app.get("/posts/:id", (req, res) => {
+  const post = posts.find(p => p.id == req.params.id);
+  if (!post) return res.status(404).json({ message: "Post not found" });
 
-  users = users.filter(u => u.id != req.params.id);
-  res.sendStatus(204);
+  res.json(post);
 });
 
 // -----------------------------
-// RESERVATIONS ENDPOINTS
+// COMMENTS ENDPOINTS
 // -----------------------------
 
-// GET all reservations
-app.get("/reservations", (req, res) => {
-  res.json(reservations);
-});
-
-// GET reservation by ID
-app.get("/reservations/:id", (req, res) => {
-  const r = reservations.find(x => x.id == req.params.id);
-  if (!r) return res.status(404).json({ message: "Reservation not found" });
-  res.json(r);
-});
-
-// POST create reservation
-app.post("/reservations", (req, res) => {
-  if (!req.body.userId || !req.body.date || !req.body.time) {
-    return res.status(400).json({ message: "userId, date, time are required" });
+// POST comment on a post
+app.post("/posts/:id/comments", (req, res) => {
+  if (!req.body.text) {
+    return res.status(400).json({ message: "text is required" });
   }
 
-  const newReservation = {
-    id: reservations.length + 1,
-    userId: req.body.userId,
-    date: req.body.date,
-    time: req.body.time
+  const post = posts.find(p => p.id == req.params.id);
+  if (!post) return res.status(404).json({ message: "Post not found" });
+
+  const newComment = {
+    id: comments.length + 1,
+    postId: post.id,
+    text: req.body.text
   };
 
-  reservations.push(newReservation);
-  res.status(201).json(newReservation);
+  comments.push(newComment);
+  res.status(201).json(newComment);
 });
 
-// PUT update reservation
-app.put("/reservations/:id", (req, res) => {
-  const r = reservations.find(x => x.id == req.params.id);
-  if (!r) return res.status(404).json({ message: "Reservation not found" });
+// GET all comments for a post
+app.get("/posts/:id/comments", (req, res) => {
+  const post = posts.find(p => p.id == req.params.id);
+  if (!post) return res.status(404).json({ message: "Post not found" });
 
-  r.userId = req.body.userId ?? r.userId;
-  r.date = req.body.date ?? r.date;
-  r.time = req.body.time ?? r.time;
-
-  res.json(r);
-});
-
-// DELETE reservation
-app.delete("/reservations/:id", (req, res) => {
-  const exists = reservations.some(x => x.id == req.params.id);
-  if (!exists) return res.status(404).json({ message: "Reservation not found" });
-
-  reservations = reservations.filter(x => x.id != req.params.id);
-  res.sendStatus(204);
+  const postComments = comments.filter(c => c.postId == req.params.id);
+  res.json(postComments);
 });
 
 // -----------------------------
